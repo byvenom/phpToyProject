@@ -1,0 +1,37 @@
+$(document).ready(function(){
+
+
+
+});
+function abc(){
+	const inputVal = $("#val").val();
+	if(inputVal.match(/^-{0,1}\d+$/)){
+		if(inputVal>=0 && inputVal<=100){
+		const rand1 = Math.floor(Math.random()*100)+1;
+			if(rand1>=1 && rand1<=inputVal){
+				alert('성공');
+			
+				$("#val1").val(parseInt($("#val1").val())+1);
+				$("#val2").val(parseInt($("#val2").val())+1);
+			}else{
+				alert('실패');
+			
+				$("#val1").val(parseInt($("#val1").val())+1);
+				$("#val3").val(parseInt($("#val3").val())+1);
+			}
+		}else{
+			alert("0~100 사이의 자연수만 입력해주세요!");
+		$("#val").val('');
+		$("#val").focus();
+		}
+	}
+	else if(inputVal.match(/^\d+\.\d+$/)){
+		alert("0~100 사이의 자연수만 입력해주세요!");
+		$("#val").val('');
+		$("#val").focus();
+    }else{
+			alert("0~100 사이의 자연수만 입력해주세요!");
+		$("#val").val('');
+		$("#val").focus();
+		}
+	}

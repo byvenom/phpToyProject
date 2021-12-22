@@ -1,0 +1,149 @@
+<script>
+window.setTimeout('window.location.reload()',60000); // 1분에 한번씩 새로고침
+</script>
+<?
+ini_set("allow_url_fopen",1);
+include 'logincheck.php';
+$user_id = $_SESSION['user_id'];
+include "simple_html_dom.php";
+include 'dbConn.php';
+$today_Info_Arr = array();
+//$base = "https://finance.naver.com/item/main.nhn?code=242040"; //나무기술
+//$base = "https://finance.naver.com/item/main.nhn?code=024110"; //기업은행
+$sql = "select stock_code from favorites where userid='$user_id'";
+$result = mysqli_query($conn,$sql);
+
+while($data=mysqli_fetch_row($result)){
+ $base = "https://finance.naver.com/item/main.nhn?code=$data[0]";
+ $curl = curl_init();
+ curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+ curl_setopt($curl, CURLOPT_HEADER, false);
+ curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+ curl_setopt($curl, CURLOPT_URL, $base);
+ curl_setopt($curl, CURLOPT_REFERER, $base);
+ curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
+ $str = curl_exec($curl);
+ $str = iconv("EUC-KR","UTF-8",$str);
+ curl_close($curl);
+// Create a DOM object
+ $html = new simple_html_dom();
+ // Load HTML from a string
+ $html->load($str);
+	
+
+$str = htmlspecialchars($str);
+$a = $html->find("span.blind");
+
+$value = "";
+$value2 = 0;
+$value3 = 0;
+$sum = "";
+$sum2 = "";
+$sum3 = "";
+$upDownCheck="";
+foreach($a as $b=>$c){
+		if($b==12){
+		$value=preg_replace("/[^0-9]*/s", "", $c);
+		}
+}
+
+$a = $html->find("p.no_exday");
+
+foreach($a as $b=>$c){
+	$c = explode(" ",$c);
+	
+
+	foreach($c as $dv=>$d){
+		$value2 = preg_replace("/[^0-9]*/s", "", $c[19]);
+		if(strpos($d,'상승') !== false){
+			$upDownCheck = "up";
+		}
+		if(strpos($d,'하락') !== false){
+			$upDownCheck = "down";
+		}
+		if(strpos($c[38],'>') !== false){
+				$value3 = explode('<',explode(">",$c[38])[1])[0];
+			}
+			if(strpos($c[39],'>') !== false){
+				$value3 = explode('<',explode(">",$c[39])[1])[0];
+			}
+		
+	}
+	
+		
+	
+}
+$value3.="%";
+
+$value = number_format($value);
+$color = "";
+if($upDownCheck =="up"){
+	$value2 = "+".$value2;
+	$value3 = "+".$value3;
+	$color="red";
+}else if($upDownCheck =="down"){
+	$value2 = "-".$value2;
+	$value3 = "-".$value3;
+	$color="blue";
+}
+$a = $html->find("em#_market_sum");
+foreach($a as $b)
+{
+	$sum = preg_replace("/[^0-9]*/s", "", $b);
+}
+if($sum >10000){
+	
+	$sum2 = substr($sum,-4);
+	$sum3 = substr($sum,0,-4);
+	$sum = number_format($sum3)."조".number_format($sum2)."억원";
+}else{
+	$sum = number_format($sum)."억원";
+}
+$a = $html->find("div.tab_con1");
+
+foreach($a as $b)
+{
+	$val4 = strip_tags($b);
+	
+}
+$val4 = str_replace(array('& nbsp;','　',' ',"\t","\n","\r","\0","\x0B"),'',$val4);
+
+$a = $html->find("div.wrap_company");
+$value0 = "";
+foreach($a as $b)
+{
+	$value0 = strip_tags($b);
+  
+	
+}
+$value0=explode(' ',$value0);
+$value0=$value0[1];
+array_push($today_Info_Arr,array($value0,$value,$value2,$value3,$sum,$color));
+}
+
+
+?>
+<style>
+	
+.myTable { table-layout: auto; width: 100%; min-width: 320px; max-width: 100%; overflow: hidden; border: 0; border-collapse: collapse; background-color: #FAFAFA; margin: auto; margin-bottom: 20px; text-align: center; font-size: 0.9em } .wiDe { min-width: 640px; } .nArrow { max-width: 480px } .myTable tr { height: 40px; } .myTable td, th { border: 1px white solid; padding: 8px; } .myTable th { background-color: #ffa775; color: whitesmoke; } .headerOrange th { background-color: #F5F5F5; } .headerGreen th { background-color: #81e281; } .headerBlue th { background-color: #7799ff; } .myTable.headerH tr:nth-Child(odd) { background-color: #F0F0F0; } .myTable.headerH td, .myTable.headerH th { border-width: 0 1px; } .myTable.headerH tr:hover td { border-color: transparent; background-color: #E6E6E6; } .myTable.headerH tr:hover td:first-Child { border-left-color: white; } .myTable.headerH tr:hover td:last-Child { border-right-color: white; } .myTable.headerV { width: 50%; } .myTable.headerV td:nth-Child(odd) { background-color: #F0F0F0; } .myTable.headerHybrid tr:first-Child th:first-Child { background-color: transparent; } /* 복합 형식 1번 셀 */ .myTable.headerHybrid td:hover { background-color: #E6E6E6; } .myTable caption { margin: 4px 0; }
+</style>
+<h1 align="center">임시샘플</h1>
+<table class="myTable headerH">
+	<tr>
+		<th>종목명</th>
+		<th>현재가</th>
+		<th>전일대비</th>
+		<th>전일대비%</th>
+		<th>시가총액</th>
+	</tr>	
+	<? foreach($today_Info_Arr as $value) { ?>
+	<tr style="color:<?=$value[5]?>">
+		<td><b><?=$value[0]?></b></td>
+		<td><?=$value[1]?></td>
+		<td><?=$value[2]?></td>
+		<td><?=$value[3]?></td>
+		<td><?=$value[4]?></td>
+	</tr>
+	<? } ?>
+</table>
+

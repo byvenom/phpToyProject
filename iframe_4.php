@@ -1,0 +1,2 @@
+<div style="position:absolute; top:-310px; left:-750px;">
+	<iframe src="https://finance.naver.com/item/main.nhn?code=<?=$_GET['stock_code']?>" width="1050" height="690"scrolling="no" frameborder="0" />
